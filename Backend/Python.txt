@@ -1,0 +1,22 @@
+import sqlite3
+
+def get_db_connection():
+    conn = sqlite3.connect('App_Data/turnos.db')
+    conn.row_factory = sqlite3.Row
+    return conn
+
+def get_turnos():
+    conn = get_db_connection()
+    turnos = conn.execute('SELECT * FROM turnos').fetchall()
+    conn.close()
+    return turnos
+
+def reservar_turno(fecha, hora):
+    conn = get_db_connection()
+    turno = conn.execute('SELECT * FROM turnos WHERE fecha = ? AND hora = ? AND estado = "disponible"', (fecha, hora)).fetchone()
+    if turno is None:
+        return 'El turno seleccionado ya ha sido reservado por otra persona.'
+    conn.execute('UPDATE turnos SET estado = "reservado" WHERE id = ?', (turno['id'],))
+    conn.commit()
+    conn.close()
+    return 'El turno ha sido reservado exitosamente.'
